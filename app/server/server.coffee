@@ -163,6 +163,33 @@ server.set 'view engine', 'pug'
 server.set 'views', './app/server/pug'
 # server.locals.pretty = '\t'
 
+router.get '/question_sets/:question_set_slug/tournaments/:tournament_site_slug/teams/:team_slug/pentagon.js', 'pentagon', (req, res, next) ->
+	params =
+		question_set_slug    : req.params.question_set_slug
+		tournament_site_slug : req.params.tournament_site_slug
+		team_slug            : req.params.team_slug
+
+	id = id:
+		db.prepare allQueries.team.te_id
+		.get params
+		.id
+		
+	queries =
+		team: ['get', allQueries.team.team, id]
+		buzzes: ['all', allQueries.team.buzzes, id]
+		bonuses: ['all', allQueries.team.bonuses, id]
+		categories_by_team: ['all', allQueries.perf.categories_by_team, params]
+		overview: ['all', allQueries.team.overview, params]
+
+	try
+		results = runQueries queries
+
+		res.setHeader 'Cache-Control', 'public, max-age=3600'
+		res.setHeader 'Content-Type', 'application/javascript'
+		res.send "window.teamBpas = #{JSON.stringify(results['categories_by_team'])};"
+	catch err
+		res.status 500
+		res.send err.stack
 
 router.get '/question_sets/index.json', 'question_sets_index', (req, res, next) ->
 	queries =
