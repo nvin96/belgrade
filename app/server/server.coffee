@@ -180,13 +180,14 @@ router.get '/question_sets/:question_set_slug/tournaments/:tournament_site_slug/
 		bonuses: ['all', allQueries.team.bonuses, id]
 		categories_by_team: ['all', allQueries.perf.categories_by_team, params]
 		overview: ['all', allQueries.team.overview, params]
+		breakdown: ['all', allQueries.team.breakdown, params]
 
 	try
 		results = runQueries queries
 
 		res.setHeader 'Cache-Control', 'public, max-age=3600'
 		res.setHeader 'Content-Type', 'application/javascript'
-		res.send "window.teamBpas = #{JSON.stringify(results['categories_by_team'])};"
+		res.send "window.teamBpas = #{JSON.stringify(results['categories_by_team'])}; window.playerBpas = #{JSON.stringify(results['breakdown'])}"
 	catch err
 		res.status 500
 		res.send err.stack

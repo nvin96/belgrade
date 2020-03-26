@@ -995,7 +995,8 @@ ORDER BY
 	c.id
 "
 
-lbp = 'SELECT
+lbp = (group_exp, category_exp, team_exp, order_exp) -> "
+SELECT
 pl.name as player_name,
 pl.slug as player_slug,
 COUNT(DISTINCT get.tossup_id) as count_t_heard,
@@ -1039,10 +1040,11 @@ and get.tossup_id = t.question_ptr_id
 and q.packet_id = p.id and t.question_ptr_id = q.id
 and q.category_id = cp.id and q.author_id = a.id
 and qs.slug = $question_set_slug
-and c.slug = $category_slug
+#{category_exp}
+#{team_exp}
 and c.lft <= cp.lft AND cp.rght <= c.rght AND c.tree_id = cp.tree_id
-group by pl.slug
-order by bpa_rd DESC, total_pts DESC'
+#{group_exp}
+#{order_exp}"
 
 lbtt = 'SELECT
 COUNT(DISTINCT get.tossup_id) as count_t_heard,
@@ -1201,65 +1203,66 @@ and c.lft <= cp.lft AND cp.rght <= c.rght AND c.tree_id = cp.tree_id
 order by c.level'
 
 module.exports =
-  question_sets:
-    question_sets: question_sets
-    question_sets_index: question_sets_index
+	question_sets:
+		question_sets: question_sets
+		question_sets_index: question_sets_index
 
-  question_set:
-    question_set: question_set
-    editions: question_set__editions
-    question_set_index: question_set_index
-    tossup_notes: question_set__tossup_notes
-    bonus_notes: question_set__bonus_notes
+	question_set:
+		question_set: question_set
+		editions: question_set__editions
+		question_set_index: question_set_index
+		tossup_notes: question_set__tossup_notes
+		bonus_notes: question_set__bonus_notes
 
-  edition:
-    qse_id: qse_id
-    edition: edition
-    tournaments: tournaments
-    tossups: tossups
-    bonuses: bonuses
+	edition:
+		qse_id: qse_id
+		edition: edition
+		tournaments: tournaments
+		tossups: tossups
+		bonuses: bonuses
 
-  tossup:
-    t_id: t_id
-    tossup: q2
-    buzzes: q1
-    editions: qs
+	tossup:
+		t_id: t_id
+		tossup: q2
+		buzzes: q1
+		editions: qs
 
-  bonus:
-    b_id: b_id
-    bonus: qb
-    performances: qb1
-    editions: qbs
+	bonus:
+		b_id: b_id
+		bonus: qb
+		performances: qb1
+		editions: qbs
 
-  tossup_data:
-    a: q2b
+	tossup_data:
+		a: q2b
 
-  categories:
-    d: q_
+	categories:
+		d: q_
 
-  team:
-    te_id: te_id
-    team: team
-    buzzes: team_buzzes
-    bonuses: team_bonuses
-    overview: player_overview
+	team:
+		te_id: te_id
+		team: team
+		buzzes: team_buzzes
+		bonuses: team_bonuses
+		overview: player_overview
+		breakdown: lbp('GROUP BY pl.slug, c.id', 'AND c.level = 1', 'AND te.slug = $team_slug', 'order by pl.slug, c.id')
 
-  player:
-    pl_id: pl_id
-    player: player
-    buzzes: player_buzzes
+	player:
+		pl_id: pl_id
+		player: player
+		buzzes: player_buzzes
 
-  perf:
-    categories_by_team: perf_by_cat_team('WHERE te.slug = $team_slug', 2)#('',3)
-    categories_by_player: perf_by_cat_player('WHERE pl.slug = $player_slug', 2)#('',3)
+	perf:
+		categories_by_team: perf_by_cat_team('WHERE te.slug = $team_slug', 2)#('',3)
+		categories_by_player: perf_by_cat_player('WHERE pl.slug = $player_slug', 2)#('',3)
 
-  leaderboards:
-    leaderboard_team_t: lbtt
-    leaderboard_team_b: lbtb
-    leaderboard_player: lbp
-    subcategories: sc
-    subcategories_parent: sc_parent
-    categories: c
+	leaderboards:
+		leaderboard_team_t: lbtt
+		leaderboard_team_b: lbtb
+		leaderboard_player: lbp('GROUP BY pl.slug', 'AND c.slug = $category_slug', '', 'order by bpa_rd DESC, total_pts DESC')
+		subcategories: sc
+		subcategories_parent: sc_parent
+		categories: c
 
-  home:
-    ticker: ticker
+	home:
+		ticker: ticker

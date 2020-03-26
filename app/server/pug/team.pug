@@ -40,9 +40,9 @@ html
 					+th(3): abbr(title='Generalist BPA per 20 tossups heard') geBPA/Rd
 					+th(3): abbr(title='Specialist BPA per 20 tossups heard') spBPA/Rd
 
-				tbody.stripe
+				tbody.stripe.players
 					for player in overview
-						tr
+						tr(id=player.player_name)
 							+tdel(player.player_name, basePath(player.player_url))
 							td.r= player.count_t_heard
 							td.r= player.count_buzzes
